@@ -4,39 +4,74 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Prueba – Ubicación y Encuesta</title>
+
   <!-- Fuente agradable (Inter) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
   <!-- Leaflet (mapa) -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+
   <style>
     :root{
       --bg:#f3f4f6;        /* gris claro */
       --card:#ffffff;      /* blanco */
       --text:#111827;      /* gris muy oscuro */
       --muted:#6b7280;     /* gris medio */
-      --brand:#e91e63;     /* rosa */
+      --brand:#e91e63;     /* rosa (encabezado) */
       --border:#e5e7eb;    /* borde claro */
       --btn:#2563eb;       /* azul botón */
     }
     *{box-sizing:border-box}
-    body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);}
-    .header{background:var(--brand);color:white;padding:16px 20px;text-align:center;letter-spacing:0.5px;}
-    .header h1{margin:0;font-size:clamp(18px,4vw,28px);font-weight:800}
-    .container{max-width:900px;margin:20px auto;padding:0 12px}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.06);padding:16px}
-    .section{display:grid;gap:10px;margin-bottom:16px}
-    label{font-weight:600}
-    input, select, textarea, button{width:100%;padding:12px;border:1px solid var(--border);border-radius:10px;font-size:16px}
-    button{background:var(--btn);color:#fff;border:none;cursor:pointer}
-    button:disabled{background:#9ca3af;cursor:not-allowed}
-    .hint{color:var(--muted);font-size:14px}
-    #map{width:100%;height:320px;border-radius:12px;border:1px solid var(--border)}
-    .coords{display:flex;gap:12px;flex-wrap:wrap}
-    .coord{flex:1 1 180px}
-    .footer-note{font-size:12px;color:var(--muted);text-align:center;margin-top:8px}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    .header{
+      background:var(--brand);
+      color:#fff;
+      padding:16px 20px;
+      text-align:center;
+      letter-spacing:0.5px;
+    }
+    .header h1{ margin:0; font-size:clamp(18px,4vw,28px); font-weight:800 }
+    .container{ max-width:900px; margin:20px auto; padding:0 12px }
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:14px;
+      box-shadow:0 6px 20px rgba(0,0,0,.06);
+      padding:16px
+    }
+    .section{ display:grid; gap:10px; margin-bottom:16px }
+    label{ font-weight:600 }
+    input, select, textarea, button{
+      width:100%;
+      padding:12px;
+      border:1px solid var(--border);
+      border-radius:10px;
+      font-size:16px
+    }
+    button{ background:var(--btn); color:#fff; border:none; cursor:pointer }
+    button:disabled{ background:#9ca3af; cursor:not-allowed }
+    .hint{ color:var(--muted); font-size:14px }
+    #map{ width:100%; height:320px; border-radius:12px; border:1px solid var(--border) }
+    .coords{ display:flex; gap:12px; flex-wrap:wrap }
+    .coord{ flex:1 1 180px }
+    .footer-note{ font-size:12px; color:var(--muted); text-align:center; margin-top:8px }
   </style>
 </head>
 <body>
@@ -46,9 +81,12 @@
 
   <main class="container">
     <div class="card">
+      <!-- Ubicación -->
       <div class="section">
         <label>Ubicación por mapa</label>
-        <p class="hint">Presioná el botón para capturar tu ubicación. Se mostrarán la <b>latitud</b> y <b>longitud</b> y un marcador en el mapa.</p>
+        <p class="hint">
+          Presioná el botón para capturar tu ubicación. Se mostrarán la <b>latitud</b> y <b>longitud</b> y un marcador en el mapa.
+        </p>
         <div class="coords">
           <div class="coord">
             <label for="lat">Latitud</label>
@@ -64,6 +102,7 @@
         <div id="map"></div>
       </div>
 
+      <!-- Desplegable -->
       <div class="section">
         <label for="estado">Seleccioná una opción</label>
         <select id="estado" name="estado" required>
@@ -74,11 +113,13 @@
         </select>
       </div>
 
+      <!-- ¿Quién contestó? -->
       <div class="section">
         <label for="nombre">¿Quién contestó esto?</label>
         <input id="nombre" name="nombre" placeholder="Nombre y apellido" />
       </div>
 
+      <!-- Botón de prueba -->
       <div class="section">
         <button id="btnDummy" type="button">Probar (solo muestra datos en pantalla)</button>
         <div id="out" class="hint"></div>
@@ -89,18 +130,19 @@
   </main>
 
   <script>
-    // Inicialización del mapa (Leaflet)
+    // Inicialización de mapa (Leaflet + OSM)
     let map = L.map('map', { zoomControl: true });
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '&copy; OpenStreetMap'
     }).addTo(map);
 
-    // Posición inicial (Asunción aprox.)
+    // Vista inicial (Asunción aprox.)
     const start = { lat: -25.2637, lng: -57.5759 };
     map.setView(start, 12);
     let marker = L.marker(start).addTo(map);
 
+    // Geolocalización
     const btnGeo = document.getElementById('btnGeo');
     const geoStatus = document.getElementById('geoStatus');
     const latInp = document.getElementById('lat');
@@ -118,7 +160,6 @@
           latInp.value = latitude.toFixed(6);
           lngInp.value = longitude.toFixed(6);
           geoStatus.textContent = `Ubicación capturada (precisión ~${Math.round(accuracy)} m)`;
-          // Actualizar mapa y marcador
           const ll = [latitude, longitude];
           map.setView(ll, 17);
           marker.remove();
@@ -131,7 +172,7 @@
       );
     });
 
-    // Botón de prueba (no envía, solo muestra los datos)
+    // Botón de prueba (no envía, solo muestra)
     document.getElementById('btnDummy').addEventListener('click', () => {
       const estado = document.getElementById('estado').value || '(sin elegir)';
       const nombre = document.getElementById('nombre').value || '(sin nombre)';
