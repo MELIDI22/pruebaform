@@ -5,33 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Prueba – Ubicación y Encuesta</title>
 
-  <!-- Fuente agradable (Inter) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
-  <!-- Leaflet (mapa) -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""
-  />
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""
-  ></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <style>
     :root{
-      --bg:#f3f4f6;        /* gris claro */
-      --card:#ffffff;      /* blanco */
-      --text:#111827;      /* gris muy oscuro */
-      --muted:#6b7280;     /* gris medio */
-      --brand:#e91e63;     /* rosa (encabezado) */
-      --border:#e5e7eb;    /* borde claro */
-      --btn:#2563eb;       /* azul botón */
+      --bg:#f3f4f6;
+      --card:#ffffff;
+      --text:#111827;
+      --muted:#6b7280;
+      --brand:#e91e63;
+      --border:#e5e7eb;
+      --btn:#2563eb;
+      --success: #059669;
     }
     *{box-sizing:border-box}
     body{
@@ -65,8 +55,10 @@
       border-radius:10px;
       font-size:16px
     }
-    button{ background:var(--btn); color:#fff; border:none; cursor:pointer }
+    button{ background:var(--btn); color:#fff; border:none; cursor:pointer; font-weight: 600; transition: opacity 0.2s; }
     button:disabled{ background:#9ca3af; cursor:not-allowed }
+    button:active{ opacity: 0.8; }
+    #btnEnviar{ background: var(--success); margin-top: 10px; }
     .hint{ color:var(--muted); font-size:14px }
     #map{ width:100%; height:320px; border-radius:12px; border:1px solid var(--border) }
     .coords{ display:flex; gap:12px; flex-wrap:wrap }
@@ -76,25 +68,24 @@
 </head>
 <body>
   <header class="header">
-    <h1>ESTAS REALMENTE DONDE DIJISTE QUE ESTAS</h1>
+    <h1>ESTÁS REALMENTE DONDE DIJISTE QUE ESTÁS</h1>
   </header>
 
   <main class="container">
-    <div class="card">
-      <!-- Ubicación -->
+    <form id="formEncuesta" class="card">
       <div class="section">
         <label>Ubicación por mapa</label>
         <p class="hint">
-          Presioná el botón para capturar tu ubicación. Se mostrarán la <b>latitud</b> y <b>longitud</b> y un marcador en el mapa.
+          Presioná el botón para capturar tu ubicación real.
         </p>
         <div class="coords">
           <div class="coord">
             <label for="lat">Latitud</label>
-            <input id="lat" name="latitud" placeholder="--" readonly />
+            <input id="lat" name="latitud" placeholder="--" readonly required />
           </div>
           <div class="coord">
             <label for="lng">Longitud</label>
-            <input id="lng" name="longitud" placeholder="--" readonly />
+            <input id="lng" name="longitud" placeholder="--" readonly required />
           </div>
         </div>
         <button id="btnGeo" type="button">📍 Obtener mi ubicación</button>
@@ -102,42 +93,41 @@
         <div id="map"></div>
       </div>
 
-      <!-- Desplegable -->
       <div class="section">
-        <label for="estado">Seleccioná una opción</label>
-        <select id="estado" name="estado" required>
+        <label for="estado">¿Estás en el sitio?</label>
+        <select id="estado" name="ubicacion" required>
           <option value="">Elegí una opción…</option>
-          <option value="si">si estoy</option>
-          <option value="no">no estoy</option>
-          <option value="sorpresa">ahora vas a saber</option>
+          <option value="Si, estoy">si estoy</option>
+          <option value="No estoy">no estoy</option>
+          <option value="Sorpresa">ahora vas a saber</option>
         </select>
       </div>
 
-      <!-- ¿Quién contestó? -->
       <div class="section">
         <label for="nombre">¿Quién contestó esto?</label>
-        <input id="nombre" name="nombre" placeholder="Nombre y apellido" />
+        <input id="nombre" name="quien_contesto" placeholder="Nombre y apellido" required />
       </div>
 
-      <!-- Botón de prueba -->
       <div class="section">
-        <button id="btnDummy" type="button">Probar (solo muestra datos en pantalla)</button>
-        <div id="out" class="hint"></div>
+        <button id="btnEnviar" type="submit">Enviar a Google Sheets</button>
+        <div id="out" class="hint" style="text-align: center; margin-top: 10px;"></div>
       </div>
 
-      <p class="footer-note">Demo estática para pruebas. Luego conectamos el envío a tu planilla o base.</p>
-    </div>
+      <p class="footer-note">Los datos se enviarán directamente a tu hoja de cálculo configurada.</p>
+    </form>
   </main>
 
   <script>
-    // Inicialización de mapa (Leaflet + OSM)
+    // URL de tu script (ya integrada)
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4Pf5x3-rJTJ76d34ZbxRNc21VLZV_hgND1bXtrBw_yWhl2TBVfyoJ0ZxGxYAoaUhung/exec';
+
+    // Inicialización de mapa
     let map = L.map('map', { zoomControl: true });
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '&copy; OpenStreetMap'
     }).addTo(map);
 
-    // Vista inicial (Asunción aprox.)
     const start = { lat: -25.2637, lng: -57.5759 };
     map.setView(start, 12);
     let marker = L.marker(start).addTo(map);
@@ -166,24 +156,48 @@
           marker = L.marker(ll).addTo(map);
         },
         (err) => {
-          geoStatus.textContent = 'No se pudo obtener ubicación: ' + err.message;
+          geoStatus.textContent = 'Error: ' + err.message;
         },
         { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
       );
     });
 
-    // Botón de prueba (no envía, solo muestra)
-    document.getElementById('btnDummy').addEventListener('click', () => {
-      const estado = document.getElementById('estado').value || '(sin elegir)';
-      const nombre = document.getElementById('nombre').value || '(sin nombre)';
-      const lat = latInp.value || '--';
-      const lng = lngInp.value || '--';
-      document.getElementById('out').innerHTML = `
-        <b>Resumen</b><br/>
-        Lat: ${lat} | Lng: ${lng}<br/>
-        Estado: ${estado}<br/>
-        ¿Quién contestó?: ${nombre}
-      `;
+    // Envío del formulario
+    const form = document.getElementById('formEncuesta');
+    const btnEnviar = document.getElementById('btnEnviar');
+    const out = document.getElementById('out');
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      
+      // Validación simple de coordenadas
+      if(!latInp.value || !lngInp.value) {
+        alert("Por favor, captura tu ubicación primero.");
+        return;
+      }
+
+      btnEnviar.disabled = true;
+      btnEnviar.textContent = "Enviando...";
+      out.textContent = "Procesando envío...";
+
+      // Enviamos los datos usando fetch
+      fetch(SCRIPT_URL, { 
+        method: 'POST', 
+        body: new FormData(form),
+        mode: 'no-cors' // Usamos no-cors para evitar problemas de redirección de Google
+      })
+      .then(() => {
+        out.innerHTML = "<b style='color:green;'>¡Datos enviados con éxito!</b>";
+        btnEnviar.textContent = "Enviado";
+        form.reset();
+        geoStatus.textContent = "Enviado correctamente.";
+      })
+      .catch(error => {
+        console.error('Error!', error.message);
+        out.innerHTML = "<b style='color:red;'>Error al enviar. Intenta de nuevo.</b>";
+        btnEnviar.disabled = false;
+        btnEnviar.textContent = "Enviar a Google Sheets";
+      });
     });
   </script>
 </body>
